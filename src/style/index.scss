@@ -1,0 +1,27 @@
+@import "./variables.scss";
+@import "./mixin.scss";
+@import "./cus-element.scss";
+
+html,
+body {
+  font-size: 16px;
+  color: #fff;
+  min-width: 1366px;
+  margin: 0;
+  box-sizing: border-box;
+  height: 100%;
+}
+// 全局修改滚动条样式
+* {
+  @include scrollBar();
+}
+
+.tab-content {
+  overflow: auto;
+  position: absolute;
+  padding: 6px 10px;
+  left: 0px;
+  right: 0px;
+  top: 56px;
+  bottom: 0px;
+}

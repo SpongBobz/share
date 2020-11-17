@@ -1,0 +1,230 @@
+/*文本格式化，超出范围，显示省略号*/
+@mixin text-overflow($maxWidth: 100%, $display: block) {
+  max-width: $maxWidth;
+  display: $display;
+  white-space: nowrap;
+  -ms-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* 清除浮动 */
+@mixin clearfix {
+  &:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+/* 行高 */
+@mixin line-height($height: 30px, $line-height: 30px) {
+  @if ($height != null) {
+    height: $height;
+  }
+  @if ($line-height!=null) {
+    line-height: $line-height;
+  }
+}
+
+/*绝对定位  参数顺序：上右下左*/
+@mixin position-absolute($top: null, $right: null, $bottom: null, $left: null) {
+  position: absolute;
+  @if ($left!= "" & & $left!=null) {
+    left: $left;
+  }
+  @if ($right!= "" & & $right!=null) {
+    right: $right;
+  }
+  @if ($top!= "" & & $top!=null) {
+    top: $top;
+  }
+  @if ($bottom!= "" & & $bottom!=null) {
+    bottom: $bottom;
+  }
+}
+
+/*弹性盒子居中（传入null不设置该属性）*/
+@mixin flex-box(
+  $direction: row,
+  $justify: null,
+  $align: null,
+  $flex-wrap: null
+) {
+  display: flex;
+  @if ($direction!=null) {
+    flex-direction: $direction;
+  }
+  @if ($justify!=null) {
+    justify-content: $justify;
+  }
+  @if ($align!=null) {
+    align-items: $align;
+  }
+  @if ($flex-wrap != null) {
+    flex-wrap: $flex-wrap;
+  }
+}
+
+/* 文本超出显示省略号 */
+@mixin textEllipsis($width: 140px) {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: $width;
+  overflow: hidden;
+  display: inline-block;
+}
+
+/* 画三角形 */
+@mixin triangle($width: 10px, $direction: top, $color: $bgBlueLight) {
+  border: $width solid transparent;
+  @if ($direction == top) {
+    // 上三角
+    border-bottom-color: $color;
+  }
+  @if ($direction == bottom) {
+    // 下三角
+    border-top-color: $color;
+  }
+  @if ($direction == left) {
+    // 左三角
+    border-right-color: $color;
+  }
+  @if ($direction == right) {
+    // 右三角
+    border-left-color: $color;
+  }
+}
+
+/* 链接样式 */
+@mixin hoverStyle(
+  $style: (
+    color: #d9fdff,
+  ),
+  $hoverStyle: (
+    color: #306eff,
+  )
+) {
+  text-decoration: none;
+  @each $key, $value in $style {
+    #{$key}: #{$value};
+  }
+  @if ($hoverStyle!=null & & $hoverStyle!= "") {
+    &:hover {
+      @each $key, $value in $hoverStyle {
+        #{$key}: #{$value};
+      }
+    }
+  }
+}
+
+/* 定义滚动条样式 圆角和阴影不需要则传入null */
+@mixin scrollBar(
+  $width: 6px,
+  $height: 6px,
+  $outColor: #04221e,
+  $innerColor: #25847b,
+  $radius: 3px,
+  $shadow: null
+) {
+  /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $height;
+    background-color: $outColor;
+  }
+
+  /*定义滚动条轨道 内阴影+圆角*/
+  &::-webkit-scrollbar-track {
+    @if ($shadow!=null) {
+      -webkit-box-shadow: $shadow;
+    }
+    @if ($radius!=null) {
+      border-radius: $radius;
+    }
+    background-color: $outColor;
+  }
+
+  /*定义滑块 内阴影+圆角*/
+  &::-webkit-scrollbar-thumb {
+    @if ($shadow!=null) {
+      -webkit-box-shadow: $shadow;
+    }
+    @if ($radius!=null) {
+      border-radius: $radius;
+    }
+    background-color: $innerColor;
+    border: 1px solid $innerColor;
+  }
+}
+
+/* css3动画 默认3s宽度到200px */
+@mixin animation(
+  $from: (
+    width: 0px,
+  ),
+  $to: (
+    width: 200px,
+  ),
+  $name: mymove,
+  $animate: mymove 2s 1 linear infinite
+) {
+  -webkit-animation: $animate;
+  -o-animation: $animate;
+  animation: $animate;
+  @keyframes #{$name} {
+    from {
+      @each $key, $value in $from {
+        #{$key}: #{$value};
+      }
+    }
+    to {
+      @each $key, $value in $to {
+        #{$key}: #{$value};
+      }
+    }
+  }
+}
+
+/* 圆形盒子 */
+@mixin circle($size: 11px, $bg: #fff) {
+  border-radius: 50%;
+  width: $size;
+  height: $size;
+  line-height: $size;
+  text-align: center;
+  background: $bg;
+}
+
+/* 绘制边角 */
+@mixin rectAngel($angelWidth: 3px, $top: 0px, $angeloffset: -4px) {
+  display: block;
+  width: 30px;
+  height: 30px;
+  border-left: $angelWidth solid $borderGreen;
+  border-top: $angelWidth solid $borderGreen;
+  position: absolute;
+  &:nth-last-child(1),
+  &:nth-last-of-type(1) {
+    left: $angeloffset;
+    top: $top + ($angeloffset);
+  }
+  &:nth-last-child(2),
+  &:nth-last-of-type(2) {
+    left: $angeloffset;
+    bottom: $angeloffset;
+    transform: rotate(-90deg);
+  }
+  &:nth-last-child(3),
+  &:nth-last-of-type(3) {
+    right: $angeloffset;
+    top: $top + ($angeloffset);
+    transform: rotate(90deg);
+  }
+  &:nth-last-child(4),
+  &:nth-last-of-type(4) {
+    bottom: $angeloffset;
+    right: $angeloffset;
+    transform: rotate(180deg);
+  }
+}
