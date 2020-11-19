@@ -4,27 +4,14 @@
     <div v-for="(item, index) in measureTooltipElement" :key="index">
       <div :id="step(index)" class="ol-tooltip ol-tooltip-static">
         {{ item.value }}
-        <a-button
+        <el-button
           type="primary"
-          icon="close"
+          icon="el-icon-close"
+          size="mini"
           @click="deleteMeasure(index)"
-        ></a-button>
+        ></el-button>
       </div>
     </div>
-    <a-button-group id="buttonGroup">
-      <a-button
-        type="primary"
-        class="measuringjuliceliang"
-        title="距离测量"
-        @click="getGeomLengthOrArea('LineString')"
-      ></a-button>
-      <a-button
-        type="primary"
-        class="measuringmianjiceliang"
-        title="面积测量"
-        @click="getGeomLengthOrArea('Polygon')"
-      ></a-button>
-    </a-button-group>
   </div>
 </template>
 <script>
@@ -60,7 +47,6 @@ export default {
     //创建矢量化图层
     createVector: function() {
       this.vectorSou = createSource("Vector");
-
       this.vectorLay = addLayer("Vector", this.vectorSou);
       this.map.addLayer(this.vectorLay);
     },
@@ -76,6 +62,8 @@ export default {
           this.geomType = null;
         }
       } else {
+        // this.map.getInteractions().array_.length = 9;
+        this.draw = null;
         this.geomType = geomType;
         this.createMeasureTooltip();
         this.addInteraction(geomType);
@@ -124,6 +112,7 @@ export default {
         });
         this.map.removeInteraction(this.draw);
         this.draw = null;
+        this.geomType = null;
         unByKey(this.listener);
       });
     },

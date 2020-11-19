@@ -1,14 +1,28 @@
 <template>
   <div class="map-panle">
-    <el-tabs class="cus-tabs" v-model="activeName" @tab-click="tabChange">
-      <el-tab-pane label="资源管理" v-loading="sourceLoading" name="source">
+    <el-tabs
+      class="cus-tabs"
+      v-model="activeName"
+      @tab-click="tabChange"
+      v-loading="sourceLoading"
+    >
+      <el-tab-pane label="资源管理" name="source">
         <el-input
           size="small"
           clearable
-          placeholder="输入版本号进行过滤"
+          placeholder="输入版本号"
+          style="width: 226px"
           v-model="filterText"
         >
+          <el-button
+            slot="append"
+            @click="getPipeData"
+            icon="el-icon-search"
+          ></el-button>
         </el-input>
+        <span class="filter-icon" @click="fliter" :class="{ active: isFavour }">
+          <IconFont type="shaixuan" />
+        </span>
         <div class="version-box">
           <div class="ridio-item" v-for="item in versionList" :key="item.id">
             <el-radio v-model="currntVersion" :label="item.id">{{
@@ -71,23 +85,39 @@ export default {
       mapSourceList: [],
       currntVersion: null,
       sourceLoading: false,
-      layaerLoading: false
+      layaerLoading: false,
+      isFavour: null // 搜索过滤条件
     };
   },
   created() {
     this.getPipeData();
   },
   methods: {
+    // 过滤按钮事件
+    fliter() {
+      if (this.isFavour) {
+        this.isFavour = null;
+      } else {
+        this.isFavour = true;
+      }
+      this.getPipeData();
+    },
+    // 获取历史版本
     getPipeData() {
       this.sourceLoading = true;
-      getPipeWithFavourn({ Key: this.filterText, MaxResultCount: 999 }).then(
-        res => {
-          this.versionList = res.items;
+      getPipeWithFavourn({
+        Key: this.filterText,
+        FavourOnly: this.isFavour,
+        MaxResultCount: 999
+      }).then(res => {
+        this.versionList = res.items;
+        if (this.versionList && this.versionList.length) {
           this.currntVersion = this.versionList[0].id;
-          this.sourceLoading = false;
         }
-      );
+        this.sourceLoading = false;
+      });
     },
+    //  获取图层管理资源
     getMapSource() {
       this.layaerLoading = true;
       mySourceTree("zt").then(res => {
@@ -100,6 +130,7 @@ export default {
         this.getMapSource();
       }
     },
+    // 收藏版本
     favournFunc(item) {
       favour(item).then(() => {
         item.isFavour = !item.isFavour;
@@ -129,6 +160,16 @@ export default {
     }
     .ridio-item {
       margin: 14px 0;
+    }
+  }
+  .filter-icon {
+    margin: 10px;
+    font-size: 20px;
+    vertical-align: sub;
+    cursor: pointer;
+    &.active,
+    &:hover {
+      color: aquamarine;
     }
   }
 }
@@ -178,6 +219,16 @@ export default {
         height: 8px;
       }
     }
+  }
+}
+.el-input-group__append,
+.el-input-group__prepend {
+  background-color: #154067;
+  color: #ffffff;
+  border: 1px solid #406789;
+  border-left: none;
+  .el-button {
+    padding: 12px;
   }
 }
 </style>

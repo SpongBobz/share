@@ -94,30 +94,38 @@
             >
             <el-button
               size="mini"
-              @click="approval(scoped.row)"
+              @click="exportData(scoped.row, exportXml, 'xml')"
               type="success"
               style="margin-right: 5px"
+              :title="scoped.row.isFileReady || '文件暂时不能下载'"
+              :disabled="!scoped.row.isFileReady"
               >XML</el-button
             >
             <el-button
               size="mini"
-              @click="approval(scoped.row)"
-              type="success"
+              @click="exportData(scoped.row, exportShp, 'shp')"
+              type="warning"
               style="margin-right: 5px"
+              :title="scoped.row.isFileReady || '文件暂时不能下载'"
+              :disabled="!scoped.row.isFileReady"
               >shp</el-button
             >
             <el-button
               size="mini"
-              @click="approval(scoped.row)"
+              @click="exportData(scoped.row, exportExcel, 'xls')"
               type="success"
               style="margin-right: 5px"
+              :title="scoped.row.isFileReady || '文件暂时不能下载'"
+              :disabled="!scoped.row.isFileReady"
               >Excel</el-button
             >
             <el-button
               size="mini"
-              @click="approval(scoped.row)"
+              @click="exportData(scoped.row, exportDxf, 'dxf')"
               type="success"
               style="margin-right: 5px"
+              :title="scoped.row.isFileReady || '文件暂时不能下载'"
+              :disabled="!scoped.row.isFileReady"
               >DXF</el-button
             >
           </template>
@@ -131,6 +139,12 @@
 </template>
 <script>
 import { getAuditData } from "@/api/audit.js";
+import {
+  exportExcel,
+  exportXml,
+  exportShp,
+  exportDxf
+} from "@/api/dataDownload.js";
 import { formatDate } from "@/util";
 import Approval from "./components/approval";
 import Progress from "./components/progress";
@@ -143,6 +157,10 @@ export default {
   },
   data() {
     return {
+      exportExcel,
+      exportXml,
+      exportShp,
+      exportDxf,
       panes: [
         {
           label: "审核中",
@@ -244,6 +262,7 @@ export default {
     this.getTabData();
   },
   methods: {
+    // 审核中
     viewData(data) {
       this.$refs.ViewDialog.open(data);
     },
@@ -255,6 +274,45 @@ export default {
     },
     openProgress(row) {
       this.$refs.Progress.open(row);
+    },
+    // 已通过
+    exportData(row, api, name) {
+      this.exportLoad = true;
+      api(row.id)
+        .then(res => {
+          var content = res.data;
+          var blob = new Blob([content]);
+          let fileName = "";
+          if (res.headers["content-disposition"]) {
+            let temp = res.headers["content-disposition"]
+              .split(";")[2]
+              .split("filename*=UTF-8''")[1];
+            console.log(temp);
+            fileName = decodeURIComponent(temp);
+            console.log(fileName);
+          } else {
+            fileName = "文件." + name; //要保存的文件名称
+          }
+          if ("download" in document.createElement("a")) {
+            // 非IE下载
+            var elink = document.createElement("a");
+            elink.download = fileName;
+            elink.style.display = "none";
+            elink.href = URL.createObjectURL(blob);
+            document.body.appendChild(elink);
+            elink.click();
+            URL.revokeObjectURL(elink.href); // 释放URL 对象
+            document.body.removeChild(elink);
+          } else {
+            // IE10+下载
+            navigator.msSaveBlob(blob, fileName);
+          }
+          this.exportLoad = false;
+        })
+        .catch(() => {
+          this.exportLoad = false;
+          this.$message.error("导出失败!");
+        });
     },
     tabChange() {
       this.getTabData();

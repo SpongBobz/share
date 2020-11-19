@@ -68,7 +68,7 @@ let projection = new Projection({
  * @param {string} LAYERS
  * @returns 地图服务数据源
  */
-function createSource(type, url, LAYERS) {
+function createSource(type, url, LAYERS = "chinaNS:china") {
   if (type == "TileWMS" && LAYERS == undefined) {
     throw new Error("请输入图层名称");
   } else if (type == "WMTS" && LAYERS == undefined) {

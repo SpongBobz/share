@@ -14,6 +14,7 @@ const request = axios.create({
 const errorHandler = errorRep => {
   if (errorRep.response) {
     const { data, status, statusText } = errorRep.response;
+
     // 身份验证失败
     if (status === 401) {
       Message.error("登录过期，需要重新验证身份");
@@ -27,6 +28,8 @@ const errorHandler = errorRep => {
       Message.error(statusText);
     } else if (data.Message) {
       Message.error(data.Message);
+    } else if (data.error.message) {
+      Message.error(data.error.message);
     }
     return Promise.reject(data);
   }
@@ -54,11 +57,12 @@ request.interceptors.request.use(config => {
 // 请求后拦截
 request.interceptors.response.use(response => {
   if (response.config.url.includes("Api/")) {
-    if (response.request && response.request.responseType == "blob") {
-      return response;
-    } else if (response.data && !response.data.Success) {
+    if (response.data && !response.data.Success) {
       Message.error(response.data.Message);
     }
+  }
+  if (response.request && response.request.responseType == "blob") {
+    return response;
   }
   return response.data;
 }, errorHandler);

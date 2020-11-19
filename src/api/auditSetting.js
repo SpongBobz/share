@@ -1,6 +1,9 @@
 import request from "@/util/requset";
 import { getParamsFormat } from "@/util";
 
+export function isReady() {
+  return request.get(`/api/app/dataAuditSetting/isReady`);
+}
 export function getNodes() {
   return request.get(`/api/app/dataAuditSetting/nodes`);
 }

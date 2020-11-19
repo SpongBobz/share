@@ -5,6 +5,7 @@
       :data="dataSource"
       :stripe="options.stripe"
       class="cus-table"
+      :empty-text="options.emptyText || '暂无数据'"
       :border="options.border"
       :height="options.height"
       @selection-change="handleSelectionChange"

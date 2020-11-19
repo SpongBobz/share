@@ -43,6 +43,11 @@ function addLayer(type, source, visible) {
           style: createArrowStyle
         });
         break;
+      case "VectorPoint":
+        layer = new Vector({
+          source: source
+        });
+        break;
       case "cluterVector":
         layer = new Vector({
           source: source,

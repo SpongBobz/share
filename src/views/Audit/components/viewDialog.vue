@@ -62,7 +62,8 @@ export default {
         index: false, // 显示序号， 多选则 mutiSelect
         loading: false, // 表格动画
         initTable: false, // 是否一挂载就加载数据
-        border: true
+        border: true,
+        emptyText: "正在生成数据，请稍后查看！"
       }
     };
   },

@@ -1,6 +1,10 @@
 <template>
   <div class="config">
     <div class="config-title">审核配置</div>
+    <div class="warning-message" v-if="!isEdit">
+      <i class="el-icon-warning-outline" style="margin-right:5px"></i
+      >当前有数据正在审核流程中，暂不可编辑！
+    </div>
     <div class="config-steps" v-loading="nodeLoading">
       <el-steps :active="100" align-center>
         <el-step v-for="(node, i) in nodeList" :key="node.id">
@@ -12,6 +16,7 @@
                 type="text"
                 icon="el-icon-back"
                 title="向前移动审核节点"
+                :disabled="!isEdit"
               ></el-button>
               {{ node.auditUserName }}
               <el-button
@@ -21,6 +26,7 @@
                 type="text"
                 icon="el-icon-right"
                 title="向后移动审核节点"
+                :disabled="!isEdit"
               ></el-button>
             </div>
           </template>
@@ -29,9 +35,14 @@
               style="color: #CCCCCC"
               @click="createNode(node)"
               size="mini"
+              :disabled="!isEdit"
               >添加</el-button
             >
-            <el-button @click="editNode(node)" style="color:#7FD0FF" size="mini"
+            <el-button
+              @click="editNode(node)"
+              :disabled="!isEdit"
+              style="color:#7FD0FF"
+              size="mini"
               >编辑</el-button
             >
             <el-popconfirm
@@ -39,6 +50,7 @@
               @confirm="delNode(node)"
             >
               <el-button
+                :disabled="!isEdit"
                 slot="reference"
                 style="color: #DE6262;margin-left: 10px;"
                 size="mini"
@@ -53,7 +65,7 @@
   </div>
 </template>
 <script>
-import { getNodes, delNode, orderNode } from "@/api/auditSetting";
+import { getNodes, delNode, orderNode, isReady } from "@/api/auditSetting";
 import SetNodeDialog from "./components/setNodeDialog";
 export default {
   components: {
@@ -62,7 +74,8 @@ export default {
   data() {
     return {
       nodeList: [],
-      nodeLoading: false
+      nodeLoading: false,
+      isEdit: true
     };
   },
   methods: {
@@ -84,7 +97,7 @@ export default {
             this.nodeLoading = false;
           })
           .catch(() => {
-            this.nodeLoading = false;
+            this.getData();
           });
       });
     },
@@ -107,7 +120,7 @@ export default {
             this.nodeLoading = false;
           })
           .catch(() => {
-            this.nodeLoading = false;
+            this.getData();
           });
       });
     },
@@ -119,10 +132,14 @@ export default {
     },
     delNode(node) {
       this.nodeLoading = true;
-      delNode(node.id).then(() => {
-        this.$message.success("删除成功！");
-        this.getData();
-      });
+      delNode(node.id)
+        .then(() => {
+          this.$message.success("删除成功！");
+          this.getData();
+        })
+        .catch(() => {
+          this.getData();
+        });
     },
     getData() {
       this.nodeLoading = true;
@@ -135,6 +152,9 @@ export default {
   },
   created() {
     this.getData();
+    isReady().then(res => {
+      this.isEdit = res;
+    });
   }
 };
 </script>
@@ -148,12 +168,18 @@ export default {
   .config-title {
     line-height: 54px;
     background: #125c87;
+    font-size: 20px;
+  }
+  .warning-message {
+    color: #e6a23c;
+    line-height: 60px;
+    font-size: 18px;
   }
   .config-steps {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: calc(100% - 60px);
+    height: calc(100% - 200px);
   }
 }
 </style>

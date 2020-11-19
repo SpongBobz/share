@@ -3,7 +3,7 @@
     <init-map
       class="map"
       :dtMapName="dtMapName"
-      :mapType="allSource"
+      :mapType="dtSource"
       ref="olMap"
     ></init-map>
     <router-view />
@@ -26,15 +26,15 @@
         <IconFont type="suoxiao" /> 缩小
       </div>
       <span class="line"></span>
-      <div class="tool-item" @click="exitFullScreen">
+      <div class="tool-item" @click="fullScreen">
         <IconFont type="quanping" /> 全屏
       </div>
       <span class="line"></span>
-      <div class="tool-item" @click="zoomOut">
+      <div class="tool-item" @click="drawPoint">
         <IconFont type="dingwei" /> 标记
       </div>
       <span class="line"></span>
-      <div class="tool-item" @click="zoomOut">
+      <div class="tool-item" @click="lineString">
         <IconFont type="ceju" /> 测距
       </div>
     </div>
@@ -51,6 +51,7 @@ export default {
     return {
       allSource: [],
       dtSource: [],
+      ztSource: [],
       dtMapName: "古城区正射影像"
     };
   },
@@ -60,11 +61,18 @@ export default {
   methods: {
     getMapSource() {
       mySource({ Class: "DT" }).then(res => {
-        this.allSource = res;
-        this.dtSource = [];
-        this.allSource.forEach(item => {
-          if (item.class == "DT") {
-            this.dtSource.push(item);
+        this.dtSource = res;
+      });
+      mySource({ System: "地下管网共享管理系统", Class: "ZT" }).then(res => {
+        this.ztSource = res;
+        let temp = [];
+        res.forEach(item => {
+          if (
+            item.layers[0].url &&
+            item.layers[0].url.includes("localhost") != -1
+          ) {
+            console.log(item.layers[0].url);
+            temp.push(item);
           }
         });
       });
@@ -78,8 +86,14 @@ export default {
     zoomIn() {
       this.$refs.olMap.zoomIn();
     },
-    exitFullScreen() {
-      this.$refs.olMap.exitFullScreen();
+    fullScreen() {
+      this.$refs.olMap.fullScreen();
+    },
+    drawPoint() {
+      this.$refs.olMap.drawPoint();
+    },
+    lineString() {
+      this.$refs.olMap.lineString();
     }
   }
 };
