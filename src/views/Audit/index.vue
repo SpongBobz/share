@@ -139,6 +139,7 @@
 </template>
 <script>
 import { getAuditData } from "@/api/audit.js";
+import { mySource } from "@/api/mapSource.js";
 import {
   exportExcel,
   exportXml,
@@ -260,6 +261,28 @@ export default {
   },
   created() {
     this.getTabData();
+    if (!this.dtMap.length) {
+      mySource({ Class: "DT" }).then(res => {
+        let dtSource = [];
+        res.forEach(item => {
+          item.layers.forEach(layer => {
+            dtSource.push({
+              ...layer,
+              visible: true
+            });
+          });
+        });
+        this.$store.commit("user/setMap", dtSource);
+      });
+    }
+  },
+  computed: {
+    dtMap() {
+      return this.$store.state.user.dtMap;
+    },
+    userName() {
+      return this.$store.state.user.userInfo.Name;
+    }
   },
   methods: {
     // 审核中
@@ -277,42 +300,47 @@ export default {
     },
     // 已通过
     exportData(row, api, name) {
-      this.exportLoad = true;
-      api(row.id)
-        .then(res => {
-          var content = res.data;
-          var blob = new Blob([content]);
-          let fileName = "";
-          if (res.headers["content-disposition"]) {
-            let temp = res.headers["content-disposition"]
-              .split(";")[2]
-              .split("filename*=UTF-8''")[1];
-            console.log(temp);
-            fileName = decodeURIComponent(temp);
-            console.log(fileName);
-          } else {
-            fileName = "文件." + name; //要保存的文件名称
-          }
-          if ("download" in document.createElement("a")) {
-            // 非IE下载
-            var elink = document.createElement("a");
-            elink.download = fileName;
-            elink.style.display = "none";
-            elink.href = URL.createObjectURL(blob);
-            document.body.appendChild(elink);
-            elink.click();
-            URL.revokeObjectURL(elink.href); // 释放URL 对象
-            document.body.removeChild(elink);
-          } else {
-            // IE10+下载
-            navigator.msSaveBlob(blob, fileName);
-          }
-          this.exportLoad = false;
-        })
-        .catch(() => {
-          this.exportLoad = false;
-          this.$message.error("导出失败!");
-        });
+      console.log(row);
+      if (row.creatorName == this.userName) {
+        this.exportLoad = true;
+        api(row.id)
+          .then(res => {
+            var content = res.data;
+            var blob = new Blob([content]);
+            let fileName = "";
+            if (res.headers["content-disposition"]) {
+              let temp = res.headers["content-disposition"]
+                .split(";")[2]
+                .split("filename*=UTF-8''")[1];
+              console.log(temp);
+              fileName = decodeURIComponent(temp);
+              console.log(fileName);
+            } else {
+              fileName = "文件." + name; //要保存的文件名称
+            }
+            if ("download" in document.createElement("a")) {
+              // 非IE下载
+              var elink = document.createElement("a");
+              elink.download = fileName;
+              elink.style.display = "none";
+              elink.href = URL.createObjectURL(blob);
+              document.body.appendChild(elink);
+              elink.click();
+              URL.revokeObjectURL(elink.href); // 释放URL 对象
+              document.body.removeChild(elink);
+            } else {
+              // IE10+下载
+              navigator.msSaveBlob(blob, fileName);
+            }
+            this.exportLoad = false;
+          })
+          .catch(() => {
+            this.exportLoad = false;
+            this.$message.error("导出失败!");
+          });
+      } else {
+        this.$message.error("导出失败,申请人与当前用户不一致!");
+      }
     },
     tabChange() {
       this.getTabData();

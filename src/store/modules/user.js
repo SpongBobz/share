@@ -6,7 +6,8 @@ const state = {
   menuList: [],
   accessToken: getAccessToken(), // token
   updateSize: null,
-  changeNum: 0
+  changeNum: 0,
+  dtMap: []
 };
 
 const mutations = {
@@ -22,6 +23,9 @@ const mutations = {
   },
   _setChangeNum(state, value) {
     state.changeNum = value;
+  },
+  setMap(state, value) {
+    state.dtMap = value;
   },
   _changeNum(state) {
     state.changeNum++;

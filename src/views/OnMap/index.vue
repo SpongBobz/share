@@ -24,10 +24,20 @@
           <IconFont type="shaixuan" />
         </span>
         <div class="version-box">
+          <el-radio
+            style="margin-top: 14px"
+            v-model="currntVersion"
+            @change="versionChange({ id: 0, title: '最新版本' })"
+            :label="0"
+            >最新版本</el-radio
+          >
           <div class="ridio-item" v-for="item in versionList" :key="item.id">
-            <el-radio v-model="currntVersion" :label="item.id">{{
-              item.title
-            }}</el-radio>
+            <el-radio
+              v-model="currntVersion"
+              @change="versionChange({ id: item.id, title: item.title })"
+              :label="item.id"
+              >{{ item.title }}</el-radio
+            >
             <i
               @click="favournFunc(item)"
               :title="item.isFavour ? '取消收藏' : '收藏'"
@@ -38,7 +48,13 @@
         </div>
       </el-tab-pane>
       <el-tab-pane label="图层管理" name="map" v-loading="layaerLoading">
-        <el-tree class="cus-tree" :data="mapSourceList" :props="defaultProps">
+        <el-tree
+          class="cus-tree"
+          :default-expanded-keys="[2, 4]"
+          :data="mapSourceList"
+          :props="defaultProps"
+          node-key="id"
+        >
           <span class="custom-tree-node" slot-scope="{ node, data }">
             <span>
               <span :title="node.label">{{ node.label }}</span>
@@ -46,14 +62,18 @@
             <el-slider
               v-if="data.isSource && data.sources.length"
               v-model="data.sources[0].defaultOpacity"
+              @change="
+                setOpacity(
+                  data.sources[0].layers[0].sourceId,
+                  data.sources[0].defaultOpacity
+                )
+              "
               height="5px"
               v-on.stop.prevent
             ></el-slider>
             <i
               v-if="data.isSource && data.sources.length"
-              @click.stop.prevent="
-                data.sources[0].defaultVisible = !data.sources[0].defaultVisible
-              "
+              @click.stop.prevent="setvisible(data)"
               :title="data.sources[0].defaultVisible ? '隐藏' : '显示'"
               class="el-icon-view"
               :style="{
@@ -83,16 +103,34 @@ export default {
       filterText: "",
       versionList: [],
       mapSourceList: [],
-      currntVersion: null,
+      currntVersion: 0,
+      tempval: 0,
       sourceLoading: false,
       layaerLoading: false,
-      isFavour: null // 搜索过滤条件
+      isFavour: null, // 搜索过滤条件
+      newLayers: [],
+      currentLayers: []
     };
   },
   created() {
     this.getPipeData();
   },
   methods: {
+    setvisible(data) {
+      this.$parent.$refs.olMap.setLayerVisible([
+        {
+          name: data.sources[0].layers[0].sourceId,
+          isShow: !data.sources[0].defaultVisible
+        }
+      ]);
+      data.sources[0].defaultVisible = !data.sources[0].defaultVisible;
+    },
+    setOpacity(name, val) {
+      this.$parent.$refs.olMap.setLayerOpacity({
+        name: name,
+        opacity: val
+      });
+    },
     // 过滤按钮事件
     fliter() {
       if (this.isFavour) {
@@ -111,9 +149,9 @@ export default {
         MaxResultCount: 999
       }).then(res => {
         this.versionList = res.items;
-        if (this.versionList && this.versionList.length) {
-          this.currntVersion = this.versionList[0].id;
-        }
+        // if (this.versionList && this.versionList.length) {
+        //   this.currntVersion = this.versionList[0].id;
+        // }
         this.sourceLoading = false;
       });
     },
@@ -124,6 +162,35 @@ export default {
         this.mapSourceList = res.children;
         this.layaerLoading = false;
       });
+    },
+    versionChange(data) {
+      this.currntVersion = this.tempval;
+      this.$confirm("是否确认将版本切换到 " + data.title + " ？", "提示", {
+        type: "warning"
+      })
+        .then(() => {
+          this.newLayers = this.$parent.removeZtMap();
+          if (data.id == 0) {
+            this.$parent.loadZtMap();
+          } else {
+            this.currentLayers = this.newLayers.map(item => {
+              return {
+                ...item,
+                layers: item.layers.map(layer => {
+                  return {
+                    ...layer,
+                    name: layer.name + `_${data.id}`
+                  };
+                })
+              };
+            });
+            this.$parent.loadZtMap(this.currentLayers);
+          }
+          this.currntVersion = data.id;
+          this.tempval = data.id;
+          this.$message.success("切换成功！");
+        })
+        .catch(() => {});
     },
     tabChange() {
       if (this.activeName == "map" && this.mapSourceList.length < 1) {
@@ -176,6 +243,7 @@ export default {
 </style>
 <style lang="scss">
 .cus-tabs {
+  height: calc(100% - 64px);
   .el-tabs__nav-wrap {
     &::after {
       background-color: #0381cb;
@@ -199,7 +267,8 @@ export default {
   }
   .el-tabs__content {
     padding: 0 12px;
-    min-height: 300px;
+    height: 100%;
+    overflow-y: auto;
   }
 }
 .el-slider {

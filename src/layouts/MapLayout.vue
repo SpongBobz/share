@@ -1,18 +1,17 @@
 <template>
   <div class="map-layout">
-    <init-map
-      class="map"
-      :dtMapName="dtMapName"
-      :mapType="dtSource"
-      ref="olMap"
-    ></init-map>
+    <init-map class="map" :mapType="dtSource" ref="olMap"></init-map>
     <router-view />
     <div class="map-list">
       <div
         v-for="item in dtSource"
-        @click="mapChange(item.id)"
+        @click="mapChange(item.sourceId)"
         :key="item.id"
         class="map-item"
+        :class="{ active: item.sourceId == dtMapName }"
+        :style="{
+          background: 'url(' + require(`../assets/imgs/${item.name}.png`) + ')'
+        }"
       >
         <span>{{ item.name }}</span>
       </div>
@@ -29,20 +28,25 @@
       <div class="tool-item" @click="fullScreen">
         <IconFont type="quanping" /> 全屏
       </div>
-      <span class="line"></span>
+      <!-- <span class="line"></span>
       <div class="tool-item" @click="drawPoint">
         <IconFont type="dingwei" /> 标记
-      </div>
+      </div> -->
       <span class="line"></span>
       <div class="tool-item" @click="lineString">
         <IconFont type="ceju" /> 测距
       </div>
+      <!-- <span class="line"></span>
+      <div class="tool-item" @click="drawPoint">
+        <i class="el-icon-refresh"></i> 重置
+      </div> -->
     </div>
   </div>
 </template>
 <script>
 import initMap from "@/components/initMap/initMap";
 import { mySource } from "@/api/mapSource.js";
+
 export default {
   components: {
     initMap
@@ -52,33 +56,63 @@ export default {
       allSource: [],
       dtSource: [],
       ztSource: [],
-      dtMapName: "古城区正射影像"
+      dtMapName: "",
+      dtVizible: []
     };
   },
-  created() {
+  mounted() {
     this.getMapSource();
   },
   methods: {
     getMapSource() {
       mySource({ Class: "DT" }).then(res => {
-        this.dtSource = res;
+        this.dtSource = [];
+        this.dtVizible = [];
+        res.forEach((item, i) => {
+          item.layers.forEach(layer => {
+            this.dtVizible.push({
+              name: layer.sourceId,
+              isShow: this.dtVizible.length == 0
+            });
+            this.dtSource.push({
+              ...layer,
+              visible: i == 0
+            });
+          });
+        });
+        this.$store.commit("user/setMap", this.dtSource);
+        this.dtMapName = this.dtVizible[0].name;
       });
       mySource({ System: "地下管网共享管理系统", Class: "ZT" }).then(res => {
         this.ztSource = res;
-        let temp = [];
-        res.forEach(item => {
-          if (
-            item.layers[0].url &&
-            item.layers[0].url.includes("localhost") != -1
-          ) {
-            console.log(item.layers[0].url);
-            temp.push(item);
-          }
-        });
+        // res.forEach(item => {
+        //   if (item.layers[0].url && !item.layers[0].url.includes("localhost")) {
+        //     this.ztSource.push(item);
+        //   }
+        // });
+        // this.ztSource.splice(0, 1);
+        this.loadZtMap();
       });
     },
-    mapChange(item) {
-      this.dtMapName = item;
+    loadZtMap(data = this.ztSource) {
+      this.$refs.olMap.loadZtMap(data);
+    },
+    removeZtMap() {
+      this.$refs.olMap.removeZtMap(this.ztSource);
+      return this.ztSource;
+    },
+    mapChange(name) {
+      if (name != this.dtMapName) {
+        this.dtVizible.forEach((item, i) => {
+          if (item.name == name) {
+            this.dtVizible[i].isShow = true;
+          } else {
+            this.dtVizible[i].isShow = false;
+          }
+        });
+        this.dtMapName = name;
+        this.$refs.olMap.setLayerVisible(this.dtVizible);
+      }
     },
     zoomOut() {
       this.$refs.olMap.zoomOut();
@@ -93,7 +127,7 @@ export default {
       this.$refs.olMap.drawPoint();
     },
     lineString() {
-      this.$refs.olMap.lineString();
+      this.$refs.olMap.ML();
     }
   }
 };
@@ -141,9 +175,17 @@ export default {
       background: #2b7ab7;
       margin-left: 5px;
       cursor: pointer;
+      &:hover,
+      &.active {
+        span {
+          background-color: #3385ff;
+        }
+      }
       span {
+        padding: 2px;
         position: relative;
-        top: 36px;
+        border-radius: 2px;
+        top: 38px;
         cursor: pointer;
       }
     }

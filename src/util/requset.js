@@ -13,8 +13,8 @@ const request = axios.create({
 // 异常拦截处理器
 const errorHandler = errorRep => {
   if (errorRep.response) {
-    const { data, status, statusText } = errorRep.response;
-
+    const { data, status, statusText, error } = errorRep.response;
+    console.log(error);
     // 身份验证失败
     if (status === 401) {
       Message.error("登录过期，需要重新验证身份");
@@ -26,9 +26,9 @@ const errorHandler = errorRep => {
       });
     } else if (status === 405) {
       Message.error(statusText);
-    } else if (data.Message) {
+    } else if (data && data.Message) {
       Message.error(data.Message);
-    } else if (data.error.message) {
+    } else if (data.error && data.error.message) {
       Message.error(data.error.message);
     }
     return Promise.reject(data);
@@ -56,6 +56,7 @@ request.interceptors.request.use(config => {
 
 // 请求后拦截
 request.interceptors.response.use(response => {
+  console.log(121231);
   if (response.config.url.includes("Api/")) {
     if (response.data && !response.data.Success) {
       Message.error(response.data.Message);

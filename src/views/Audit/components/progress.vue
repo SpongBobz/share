@@ -17,16 +17,19 @@
           :status="node.isAudited ? 'success' : 'finish'"
         >
           <template slot="title">
-            <div>{{ node.isAudited ? "已审批" : "审批中" }}</div>
+            <div v-if="!node.cus">
+              {{ node.isAudited ? "已审批" : "审批中" }}
+            </div>
+            <div v-if="node.cus">
+              通过/不通过
+            </div>
             <div>{{ node.auditorName }}</div>
             {{ node.auditTime ? formatDate(node.auditTime) : "" }}
           </template>
           <template slot="description">
-            <div></div>
             {{ node.approval }}
           </template>
         </el-step>
-        <el-step title="通过/不通过" status="finish"></el-step>
       </el-steps>
     </div>
   </el-dialog>
@@ -56,6 +59,7 @@ export default {
       this.loading = true;
       progress(this.id).then(res => {
         this.nodeList = res.steps;
+        this.nodeList.push({ cus: true });
         this.loading = false;
       });
     },

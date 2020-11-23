@@ -130,19 +130,21 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true;
-          this.$store.dispatch("user/login", this.loginForm).then(async res => {
-            if (res && res.Success) {
-              this.$store.dispatch("user/getUserInfo").then(res => {
-                if (res.flag) {
-                  this.$router.push(res.path);
-                } else {
-                  this.$message.error("当前用户无权限进入此系统！");
-                }
-              });
-            }
-            this.createCode();
-            this.loading = false;
-          });
+          this.$store
+            .dispatch("user/login", { ...this.loginForm, SystemId: 3 })
+            .then(async res => {
+              if (res && res.Success) {
+                this.$store.dispatch("user/getUserInfo").then(res => {
+                  if (res.flag) {
+                    this.$router.push(res.path);
+                  } else {
+                    this.$message.error("当前用户无权限进入此系统！");
+                  }
+                });
+              }
+              this.createCode();
+              this.loading = false;
+            });
         } else {
           console.log("登录失败!!");
           this.createCode();
