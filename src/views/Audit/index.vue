@@ -94,6 +94,7 @@
             >
             <el-button
               size="mini"
+              v-if="userId == scoped.row.creatorId"
               @click="exportData(scoped.row, exportXml, 'xml')"
               type="success"
               style="margin-right: 5px"
@@ -103,6 +104,7 @@
             >
             <el-button
               size="mini"
+              v-if="userId == scoped.row.creatorId"
               @click="exportData(scoped.row, exportShp, 'shp')"
               type="warning"
               style="margin-right: 5px"
@@ -112,6 +114,7 @@
             >
             <el-button
               size="mini"
+              v-if="userId == scoped.row.creatorId"
               @click="exportData(scoped.row, exportExcel, 'xls')"
               type="success"
               style="margin-right: 5px"
@@ -121,6 +124,7 @@
             >
             <el-button
               size="mini"
+              v-if="userId == scoped.row.creatorId"
               @click="exportData(scoped.row, exportDxf, 'dxf')"
               type="success"
               style="margin-right: 5px"
@@ -280,8 +284,8 @@ export default {
     dtMap() {
       return this.$store.state.user.dtMap;
     },
-    userName() {
-      return this.$store.state.user.userInfo.Name;
+    userId() {
+      return this.$store.state.user.userInfo.Id;
     }
   },
   methods: {
@@ -300,47 +304,40 @@ export default {
     },
     // 已通过
     exportData(row, api, name) {
-      console.log(row);
-      if (row.creatorName == this.userName) {
-        this.exportLoad = true;
-        api(row.id)
-          .then(res => {
-            var content = res.data;
-            var blob = new Blob([content]);
-            let fileName = "";
-            if (res.headers["content-disposition"]) {
-              let temp = res.headers["content-disposition"]
-                .split(";")[2]
-                .split("filename*=UTF-8''")[1];
-              console.log(temp);
-              fileName = decodeURIComponent(temp);
-              console.log(fileName);
-            } else {
-              fileName = "文件." + name; //要保存的文件名称
-            }
-            if ("download" in document.createElement("a")) {
-              // 非IE下载
-              var elink = document.createElement("a");
-              elink.download = fileName;
-              elink.style.display = "none";
-              elink.href = URL.createObjectURL(blob);
-              document.body.appendChild(elink);
-              elink.click();
-              URL.revokeObjectURL(elink.href); // 释放URL 对象
-              document.body.removeChild(elink);
-            } else {
-              // IE10+下载
-              navigator.msSaveBlob(blob, fileName);
-            }
-            this.exportLoad = false;
-          })
-          .catch(() => {
-            this.exportLoad = false;
-            this.$message.error("导出失败!");
-          });
-      } else {
-        this.$message.error("导出失败,申请人与当前用户不一致!");
-      }
+      this.exportLoad = true;
+      api(row.id)
+        .then(res => {
+          var content = res.data;
+          var blob = new Blob([content]);
+          let fileName = "";
+          if (res.headers["content-disposition"]) {
+            let temp = res.headers["content-disposition"]
+              .split(";")[2]
+              .split("filename*=UTF-8''")[1];
+            fileName = decodeURIComponent(temp);
+          } else {
+            fileName = "文件." + name; //要保存的文件名称
+          }
+          if ("download" in document.createElement("a")) {
+            // 非IE下载
+            var elink = document.createElement("a");
+            elink.download = fileName;
+            elink.style.display = "none";
+            elink.href = URL.createObjectURL(blob);
+            document.body.appendChild(elink);
+            elink.click();
+            URL.revokeObjectURL(elink.href); // 释放URL 对象
+            document.body.removeChild(elink);
+          } else {
+            // IE10+下载
+            navigator.msSaveBlob(blob, fileName);
+          }
+          this.exportLoad = false;
+        })
+        .catch(() => {
+          this.exportLoad = false;
+          this.$message.error("导出失败!");
+        });
     },
     tabChange() {
       this.getTabData();

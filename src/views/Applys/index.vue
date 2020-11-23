@@ -47,7 +47,11 @@
           </el-form>
         </div>
         <div class="panle-footer">
-          <el-button type="primary" size="small" @click="requestPipe"
+          <el-button
+            type="primary"
+            :loading="loading"
+            size="small"
+            @click="requestPipe"
             >申请</el-button
           >
           <el-button class="reset" size="small" @click="reset">取消</el-button>
@@ -94,7 +98,11 @@
           </el-form>
         </div>
         <div class="panle-footer">
-          <el-button type="primary" size="small" @click="requestTown"
+          <el-button
+            type="primary"
+            :loading="loading"
+            size="small"
+            @click="requestTown"
             >申请</el-button
           >
           <el-button class="reset" size="small" @click="reset">取消</el-button>
@@ -128,14 +136,32 @@
             </el-form-item>
             <el-form-item label="绘制图形" prop="geoWKT">
               <div class="drawBox">
-                <div @click="drawRect" class="area rect"></div>
-                <div @click="drawCircle" class="area circle"></div>
+                <div
+                  @click="drawRect"
+                  :class="{
+                    active: currntDraw == 'rect',
+                    isDisabled: currntDraw
+                  }"
+                  class="area rect"
+                ></div>
+                <div
+                  @click="drawCircle"
+                  :class="{
+                    active: currntDraw == 'circle',
+                    isDisabled: currntDraw
+                  }"
+                  class="area circle"
+                ></div>
               </div>
             </el-form-item>
           </el-form>
         </div>
         <div class="panle-footer">
-          <el-button type="primary" size="small" @click="requestCus"
+          <el-button
+            type="primary"
+            :loading="loading"
+            size="small"
+            @click="requestCus"
             >申请</el-button
           >
           <el-button class="reset" size="small" @click="reset">取消</el-button>
@@ -230,7 +256,9 @@ export default {
       versionList: [],
       sourceLoading: false,
       townLoading: false,
-      currntVersion: null
+      currntVersion: null,
+      loading: false,
+      currntDraw: ""
     };
   },
   created() {
@@ -248,8 +276,7 @@ export default {
         if (valid) {
           this.loading = true;
           postPipe({ ...this.pipeData, creatorName: this.userName }).then(
-            res => {
-              console.log(res);
+            () => {
               this.loading = false;
               this.$message.success("提交成功!");
             }
@@ -297,16 +324,27 @@ export default {
     },
 
     drawRect() {
-      this.cusData.geoWKT = "";
-      this.$parent.$refs.olMap.RefreshMap();
-      this.$parent.$refs.olMap.DrawBox2(this.getDrawData);
+      if (!this.currntDraw) {
+        this.currntDraw = "rect";
+        this.cusData.geoWKT = "";
+        this.$parent.$refs.olMap.RefreshMap();
+        this.$parent.$refs.olMap.DrawBox2(this.getDrawData);
+      } else {
+        this.$message.warning("请先完成绘制!");
+      }
     },
     drawCircle() {
-      this.cusData.geoWKT = "";
-      this.$parent.$refs.olMap.RefreshMap();
-      this.$parent.$refs.olMap.DrawCircle2(this.getDrawData);
+      if (!this.currntDraw) {
+        this.currntDraw = "circle";
+        this.cusData.geoWKT = "";
+        this.$parent.$refs.olMap.RefreshMap();
+        this.$parent.$refs.olMap.DrawCircle2(this.getDrawData);
+      } else {
+        this.$message.warning("请先完成绘制!");
+      }
     },
     getDrawData(data) {
+      this.currntDraw = "";
       this.cusData.geoWKT = data;
     },
     reset() {
@@ -328,12 +366,6 @@ export default {
           title: "最新"
         });
         this.sourceLoading = false;
-      });
-    },
-    getMapSource() {
-      getPipeClass({ MaxResultCount: 999 }).then(res => {
-        console.log(res);
-        // this.mapSourceList = res.children;
       });
     },
     getTownList() {
@@ -380,8 +412,8 @@ export default {
     align-items: center;
     height: 60px;
     .area {
-      cursor: pointer;
       border: 2px dashed #ffc600c0;
+      cursor: pointer;
       &.rect {
         width: 28px;
         height: 24px;
@@ -392,8 +424,15 @@ export default {
         height: 28px;
         border-radius: 50%;
       }
+      &.active {
+        border-color: #00ffffc0 !important;
+      }
       &:hover {
         border-color: #00ffffc0;
+        &.isDisabled {
+          cursor: not-allowed;
+          border-color: #ffc600c0;
+        }
       }
     }
   }

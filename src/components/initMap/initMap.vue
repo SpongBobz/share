@@ -181,7 +181,6 @@ export default {
       olMap.DrawLabel("测试", 210);
     },
     CreateByWkt(data) {
-      console.log(data);
       olMap.HiLightWkt(data);
       olMap.ZoomToWkt(data);
     },

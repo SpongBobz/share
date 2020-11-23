@@ -56,7 +56,6 @@ request.interceptors.request.use(config => {
 
 // 请求后拦截
 request.interceptors.response.use(response => {
-  console.log(121231);
   if (response.config.url.includes("Api/")) {
     if (response.data && !response.data.Success) {
       Message.error(response.data.Message);

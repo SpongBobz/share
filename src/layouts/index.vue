@@ -95,7 +95,6 @@ export default {
       this.$router.push(name);
     },
     handleUserCommand(cmd) {
-      console.log(cmd);
       switch (cmd) {
         case "logOut":
           this.logout(); //退出系统
